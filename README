@@ -1,0 +1,3 @@
+WIP wayland notifcation port of herbe https://github.com/dudik/herbe.
+
+Right now the build system uses shell scripts till I make a Makefile :P

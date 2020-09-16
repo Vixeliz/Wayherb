@@ -1,0 +1,6 @@
+#!/bin/sh
+
+wayland-scanner client-header lib/wlr-layer-shell-unstable-v1.xml lib/wlr-layer-shell-unstable-v1.h
+wayland-scanner private-code lib/wlr-layer-shell-unstable-v1.xml lib/wlr-layer-shell-unstable-v1.c
+
+gcc -o herbew herbew.c lib/wlr-layer-shell-unstable-v1.c lib/xdg-shell.c -lwayland-client -Ilib
