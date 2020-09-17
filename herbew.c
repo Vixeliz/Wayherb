@@ -303,7 +303,7 @@ int main(int argc, char *argv[])
 	
 	//Init wayland stuff
 	char *namespace = "herbew";
-	int exclusive_zone = 0;
+	int exclusive_zone = height;
 	int32_t margin_right = 0, margin_bottom = 0, margin_left = 0;
 	bool found;
 	anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP + ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
