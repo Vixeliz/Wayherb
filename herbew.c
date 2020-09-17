@@ -1,3 +1,4 @@
+#include <linux/input-event-codes.h>
 #include <GLES2/gl2.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,6 +48,7 @@ static double alpha = 1.0;
 static bool run_display = true;
 static bool keyboard_interactive = false;
 static int cur_x = -1, cur_y = -1;
+static int buttons = 0;
 struct wl_cursor_image *cursor_image;
 struct wl_surface *cursor_surface, *input_surface;
 
@@ -56,16 +58,13 @@ static void draw(void) {
 	eglMakeCurrent(egl.display, egl_surface, egl_surface, egl.context);
 
 	glViewport(0, 0, width, height);
-	glClearColor(0.25, 0.25, 0.25, alpha);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	if (cur_x != -1 && cur_y != -1) {
-		glEnable(GL_SCISSOR_TEST);
-		glScissor(cur_x, height - cur_y, 5, 5);
-		glClearColor(0, 0, 0, 1);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glDisable(GL_SCISSOR_TEST);
+	
+	if (buttons == 1) {
+		glClearColor(1, 1, 1, alpha);
+	} else {
+		glClearColor(0.25, 0.25, 0.25, alpha);
 	}
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	eglSwapBuffers(egl.display, egl_surface);
 }
@@ -109,11 +108,24 @@ static void wl_pointer_enter(void *data, struct wl_pointer *wl_pointer, uint32_t
 static void wl_pointer_leave(void *data, struct wl_pointer *wl_pointer, uint32_t serial, struct wl_surface *surface)
 {
 	cur_x = cur_y = -1;
+	buttons = 0;
 }
 
 static void wl_pointer_button(void *data, struct wl_pointer *wl_pointer, uint32_t serial, uint32_t time, uint32_t button, uint32_t state)
 {
- //Todo implement right click dismissing
+	if (input_surface == wl_surface) {
+		if (state == WL_POINTER_BUTTON_STATE_PRESSED) {
+			if (button == BTN_RIGHT) {
+			buttons++;
+			} else {
+			
+			}
+		} else {
+			buttons--;
+		}
+	} else {
+		assert(false && "Unkown surface");
+	}
 }
 
 
@@ -366,7 +378,13 @@ int main(int argc, char *argv[])
 
 	wl_display_roundtrip(display);
 	draw();
+	
+	while (wl_display_dispatch(display) != -1 && run_display) {
+		printf("test: %d\n", buttons);
+		draw();
+	}
 
+	/*
 	sigaction(SIGUSR1, &act_expire, 0);
 	sigaction(SIGUSR2, &act_expire, 0);
 
@@ -376,14 +394,14 @@ int main(int argc, char *argv[])
 	if(duration != 0) {
 		alarm(duration);
 	}
-
-	for(;;) {
+	
+	//for(;;) {
 		//Draw Here
-	}
-
+	//}
+	
 	sem_post(mutex);
 	sem_close(mutex);
-
+	*/
 	wl_cursor_theme_destroy(cursor_theme);
 	exit(EXIT_SUCCESS);
 }
