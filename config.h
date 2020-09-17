@@ -5,6 +5,6 @@ static const char *font_pattern = "monospace:size=10";
 static const unsigned line_spacing = 5;
 static const unsigned int padding = 15;
 
-static const unsigned int border_size = 2;
+static const unsigned int border_size = 1;
 
 static const unsigned int duration = 5;

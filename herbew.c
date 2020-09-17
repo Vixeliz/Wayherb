@@ -15,12 +15,26 @@
 #include <wayland-egl.h>
 #include <wlr/render/egl.h>
 #include <wlr/util/log.h>
-
 #include "wlr-layer-shell-unstable-v1.h"
 #include "xdg-shell.h"
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #include "config.h"
 
+//Freetype
+typedef struct {
+	int x;
+	int y;
+} Vector2;
+
+struct Character {
+	unsigned int textureID;
+	Vector2 size;
+	Vector2 bearing;
+};
+
+//Wayland structs and variables
 static struct wl_display *display;
 static struct wl_output *wl_output;
 static struct wl_compositor *compositor;
@@ -43,29 +57,25 @@ static uint32_t layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
 static uint32_t anchor = 0;
 static uint32_t width = 450;
 static uint32_t height = 150;
-static int32_t margin_top = 0;
 static double alpha = 1.0;
 static bool run_display = true;
 static bool keyboard_interactive = false;
 static int cur_x = -1, cur_y = -1;
 static int buttons = 0;
 struct wl_cursor_image *cursor_image;
+struct wl_cursor_theme *cursor_theme;
 struct wl_surface *cursor_surface, *input_surface;
 
 static void draw(void);
+static void initWayland(void);
 
 static void draw(void) {
 	eglMakeCurrent(egl.display, egl_surface, egl_surface, egl.context);
-
-	glViewport(0, 0, width, height);
 	
-	if (buttons == 1) {
-		glClearColor(1, 1, 1, alpha);
-	} else {
-		glClearColor(0.25, 0.25, 0.25, alpha);
-	}
+	glViewport(0, 0, width, height);
+	glClearColor(1, 1, 1, alpha);
 	glClear(GL_COLOR_BUFFER_BIT);
-
+	
 	eglSwapBuffers(egl.display, egl_surface);
 }
 
@@ -93,6 +103,7 @@ struct zwlr_layer_surface_v1_listener layer_surface_listener = {
 	.closed = layer_surface_closed,
 };
 
+//Dealing with the cursor
 static void wl_pointer_enter(void *data, struct wl_pointer *wl_pointer, uint32_t serial, struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y)
 {
 	struct wl_cursor_image *image;
@@ -115,20 +126,13 @@ static void wl_pointer_button(void *data, struct wl_pointer *wl_pointer, uint32_
 {
 	if (input_surface == wl_surface) {
 		if (state == WL_POINTER_BUTTON_STATE_PRESSED) {
-			if (button == BTN_RIGHT) {
 			buttons++;
-			} else {
-			
-			}
-		} else {
-			buttons--;
-		}
+			run_display = 0;
 	} else {
 		assert(false && "Unkown surface");
 	}
 }
-
-
+}
 
 static void wl_pointer_motion(void *data, struct wl_pointer *wl_pointer, uint32_t time, wl_fixed_t surface_x, wl_fixed_t surface_y)
 {
@@ -174,6 +178,7 @@ struct wl_pointer_listener pointer_listener = {
 	.axis_discrete = wl_pointer_axis_discrete,
 };
 
+//Right now this does not do anything however I am leaving this here for the future in case we wanted to do things like being able to type in a notification.
 static void wl_keyboard_keymap(void *data, struct wl_keyboard *wl_keyboard,
 		uint32_t format, int32_t fd, uint32_t size) {
 	// Not needed
@@ -239,6 +244,7 @@ const struct wl_seat_listener seat_listener = {
 //Handle wayland registry and assigning
 static void handle_global(void *data, struct wl_registry *registry, uint32_t name, const char *interface, uint32_t version)
 {
+	//Get globals and assign them to our variables
 	if (strcmp(interface, wl_compositor_interface.name) == 0) {
 		compositor = wl_registry_bind(registry, name, &wl_compositor_interface, 1);
 	} else if (strcmp(interface, wl_shm_interface.name) == 0) {
@@ -271,6 +277,7 @@ static const struct wl_registry_listener registry_listener = {
 	.global_remove = handle_global_remove,
 };
 
+//Function to end the program when something happens and print to console.
 static void die(const char *format, ...)
 {
 	va_list ap;
@@ -296,30 +303,30 @@ int main(int argc, char *argv[])
 		die("Usage: %s body", argv[0]);
 	}
 
-	struct sigaction act_expire, act_ignore;
-
-	act_expire.sa_handler = expire;
-	act_expire.sa_flags = SA_RESTART;
-	sigemptyset(&act_expire.sa_mask);
-
-	act_ignore.sa_handler = SIG_IGN;
-	act_ignore.sa_flags = 0;
-	sigemptyset(&act_ignore.sa_mask);
-
-	sigaction(SIGALRM, &act_expire, 0);
-	sigaction(SIGTERM, &act_expire, 0);
-	sigaction(SIGINT, &act_expire, 0);
-
-	sigaction(SIGUSR1, &act_ignore, 0);
-	sigaction(SIGUSR2, &act_ignore, 0);
+	//Wayland
+	initWayland();
+	wl_display_roundtrip(display);
+	draw();
 	
-	//Init wayland stuff
+	//Loop for drawing and detecting things.
+	while (wl_display_dispatch(display) != -1 && run_display) {
+		draw();
+	}
+
+	wl_cursor_theme_destroy(cursor_theme);
+	exit(EXIT_SUCCESS);
+}
+
+static void initWayland(void)
+{
+	//Local variables for determining where the window should be, margins, exclusive zone aka where it should tell other clients to let it draw.
 	char *namespace = "herbew";
 	int exclusive_zone = height;
-	int32_t margin_right = 0, margin_bottom = 0, margin_left = 0;
+	int32_t margin_right = 5, margin_bottom = 0, margin_left = 0, margin_top = 5;
 	bool found;
 	anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP + ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
 
+	//Testing to make sure everything is here
 	display = wl_display_connect(NULL);
 	if (!display) {
 		die("Failed to create display\n");
@@ -341,7 +348,8 @@ int main(int argc, char *argv[])
 		die("No layer shell available\n");
 	}
 
-	struct wl_cursor_theme *cursor_theme = wl_cursor_theme_load(NULL, 16, shm);
+	//Load the cursor theme so the cursor matches and also get the surface to be able to draw the cursor over the notification window. All of the asserts are for diagnosing if needed.
+	cursor_theme = wl_cursor_theme_load(NULL, 16, shm);
 	assert(cursor_theme);
 	struct wl_cursor *cursor = wl_cursor_theme_get_cursor(cursor_theme, "left_ptr");
 	assert(cursor);
@@ -353,6 +361,7 @@ int main(int argc, char *argv[])
 	cursor_surface = wl_compositor_create_surface(compositor);
 	assert(cursor_surface);
 
+	//This is where we set up our surfaces and rendering.
 	EGLint attribs[] = { EGL_ALPHA_SIZE, 8, EGL_NONE };
 	wlr_egl_init(&egl, EGL_PLATFORM_WAYLAND_EXT, display, attribs, WL_SHM_FORMAT_ARGB8888);
 
@@ -362,6 +371,7 @@ int main(int argc, char *argv[])
 	layer_surface = zwlr_layer_shell_v1_get_layer_surface(layer_shell, wl_surface, wl_output, layer, namespace);
 	assert(layer_surface);
 
+	//Configure how the surface should act
 	zwlr_layer_surface_v1_set_size(layer_surface, width, height);
 	zwlr_layer_surface_v1_set_anchor(layer_surface, anchor);
 	zwlr_layer_surface_v1_set_exclusive_zone(layer_surface, exclusive_zone);
@@ -375,33 +385,4 @@ int main(int argc, char *argv[])
 	assert(egl_window);
 	egl_surface = wlr_egl_create_surface(&egl, egl_window);
 	assert(egl_surface);
-
-	wl_display_roundtrip(display);
-	draw();
-	
-	while (wl_display_dispatch(display) != -1 && run_display) {
-		printf("Button Clicked: %d\n", buttons);
-		draw();
-	}
-
-	/*
-	sigaction(SIGUSR1, &act_expire, 0);
-	sigaction(SIGUSR2, &act_expire, 0);
-
-	sem_t *mutex = sem_open("/herbew", O_CREAT, 0644, 1);
-	sem_wait(mutex);
-
-	if(duration != 0) {
-		alarm(duration);
-	}
-	
-	//for(;;) {
-		//Draw Here
-	//}
-	
-	sem_post(mutex);
-	sem_close(mutex);
-	*/
-	wl_cursor_theme_destroy(cursor_theme);
-	exit(EXIT_SUCCESS);
 }
