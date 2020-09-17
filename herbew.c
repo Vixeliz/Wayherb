@@ -380,7 +380,7 @@ int main(int argc, char *argv[])
 	draw();
 	
 	while (wl_display_dispatch(display) != -1 && run_display) {
-		printf("test: %d\n", buttons);
+		printf("Button Clicked: %d\n", buttons);
 		draw();
 	}
 
