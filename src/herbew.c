@@ -76,5 +76,5 @@ int main(int argc, char *argv[])
 	sem_close(mutex);
 	
 	free_wayland();
-	exit(EXIT_SUCCESS);
+	return exit_code;
 }
