@@ -1,9 +1,20 @@
+//Testing area
+#include <GLES2/gl2.h>
+#include <wayland-egl.h>
+#include <wlr/render/egl.h>
+
 #include <string.h>
 #include <stdbool.h>
+#include <sys/mman.h>
 #include "wayland.h"
 #include "config.h"
 #include "util.h"
 #include "shm.h"
+
+//Egl test
+struct wlr_egl egl;
+struct wl_egl_window *egl_window;
+struct wlr_egl_surface *egl_surface;
 
 //Local globals
 static struct wayland_state wayland;
@@ -20,11 +31,16 @@ static bool keyboard_interactive = false;
 
 static void layer_surface_configure(void *data, struct zwlr_layer_surface_v1 *surface, uint32_t serial, uint32_t w, uint32_t h)
 {
+	if (egl_window)
+		wl_egl_window_resize(egl_window, width, height, 0, 0);
+
 	zwlr_layer_surface_v1_ack_configure(surface, serial);
 }
 
 static void layer_surface_closed(void *data, struct zwlr_layer_surface_v1 *surface)
 {
+	wlr_egl_destroy_surface(&egl, egl_surface);
+	wl_egl_window_destroy(egl_window);
 	zwlr_layer_surface_v1_destroy(surface);
 	wl_surface_destroy(wayland.wl_surface);
 	run_display = false;
@@ -123,7 +139,13 @@ static const struct wl_registry_listener registry_listener = {
 /* Wayland intialization, freeing, and main loop for drawing and input. */
 void draw()
 {
+	eglMakeCurrent(egl.display, egl_surface, egl_surface, egl.context);
 
+	glViewport(0, 0, width, height);
+	glClearColor(0.2, 0.2, 0.2, alpha);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	eglSwapBuffers(egl.display, egl_surface);
 }
 
 int init_wayland(void)
@@ -158,6 +180,9 @@ int init_wayland(void)
 	wayland.cursor_surface = wl_compositor_create_surface(wayland.compositor);
 	
 	//Our surfaces for our notifications
+	EGLint attribs[] = { EGL_ALPHA_SIZE, 8, EGL_NONE };
+	wlr_egl_init(&egl, EGL_PLATFORM_WAYLAND_EXT, wayland.display, attribs, WL_SHM_FORMAT_ARGB8888);
+
 	wayland.wl_surface = wl_compositor_create_surface(wayland.compositor);
 	wayland.layer_surface = zwlr_layer_shell_v1_get_layer_surface(wayland.layer_shell, wayland.wl_surface, wayland.wl_output, layer, namespace);
 
@@ -168,6 +193,14 @@ int init_wayland(void)
 	zwlr_layer_surface_v1_set_margin(wayland.layer_surface, margin_top, margin_right, margin_bottom, margin_left);
 	zwlr_layer_surface_v1_set_keyboard_interactivity(wayland.layer_surface, keyboard_interactive);
 	zwlr_layer_surface_v1_add_listener(wayland.layer_surface, &layer_surface_listener, wayland.layer_surface);
+
+	wl_surface_commit(wayland.wl_surface);
+	wl_display_roundtrip(wayland.display);
+
+	egl_window = wl_egl_window_create(wayland.wl_surface, width, height);
+	egl_surface = wlr_egl_create_surface(&egl, egl_window);
+
+	fprintf(stdout, "Finished init wayland\n");
 
 	return 1;
 }

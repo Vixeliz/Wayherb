@@ -65,8 +65,8 @@ int main(int argc, char *argv[])
 		alarm(duration);
 
 	for (;;) {
+		draw();
 		if (should_exit == 0) {
-			fprintf(stdout, "This is a test\n");
 		} else if (should_exit == 1) {
 		break;
 		}
