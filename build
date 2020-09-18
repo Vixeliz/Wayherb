@@ -3,4 +3,4 @@
 wayland-scanner client-header lib/wlr-layer-shell-unstable-v1.xml lib/wlr-layer-shell-unstable-v1.h
 wayland-scanner private-code lib/wlr-layer-shell-unstable-v1.xml lib/wlr-layer-shell-unstable-v1.c
 
-$CC -o herbew herbew.c lib/wlr-layer-shell-unstable-v1.c lib/xdg-shell.c -lwayland-client -lwayland-egl -lwayland-cursor -lwlroots -lEGL -lGLESv2 -I/usr/include/freetype2 -I/usr/include/libpng16 -Ilib -I/usr/include/pixman-1/ -DWLR_USE_UNSTABLE
+$CC -o herbew herbew.c lib/wlr-layer-shell-unstable-v1.c lib/xdg-shell.c -lwayland-client -lwayland-cursor -lcairo -I/usr/include/cairo -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng16 -DEGL_NO_X11 -I/usr/include/libdrm -lEGL -lGLESv2 -Ilib -DWLR_USE_UNSTABLE

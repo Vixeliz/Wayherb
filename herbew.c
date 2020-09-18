@@ -2,6 +2,7 @@
 #include <GLES2/gl2.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <signal.h>
 #include <unistd.h>
 #include <string.h>
@@ -12,27 +13,12 @@
 #include <semaphore.h>
 #include <wayland-client.h>
 #include <wayland-cursor.h>
-#include <wayland-egl.h>
-#include <wlr/render/egl.h>
-#include <wlr/util/log.h>
+#include <pixman.h>
+#include <cairo.h>
 #include "wlr-layer-shell-unstable-v1.h"
-#include "xdg-shell.h"
-#include <ft2build.h>
-#include FT_FREETYPE_H
+//#include "xdg-shell.h"
 
 #include "config.h"
-
-//Freetype
-typedef struct {
-	int x;
-	int y;
-} Vector2;
-
-struct Character {
-	unsigned int textureID;
-	Vector2 size;
-	Vector2 bearing;
-};
 
 //Wayland structs and variables
 static struct wl_display *display;
@@ -42,17 +28,14 @@ static struct wl_seat *seat;
 static struct wl_shm *shm;
 static struct wl_pointer *pointer;
 static struct wl_keyboard *keyboard;
-static struct xdg_wm_base *xdg_wm_base;
-static struct zwlr_layer_shell_v1 *layer_shell;
+//static struct xdg_wm_base *xdg_wm_base;
 
+//Surface and layer stuff
 static uint32_t output = UINT32_MAX;
+static struct zwlr_layer_shell_v1 *layer_shell;
 struct zwlr_layer_surface_v1 *layer_surface;
 struct wl_surface *wl_surface;
-struct wlr_egl egl;
-struct wl_egl_window *egl_window;
-struct wlr_egl_surface *egl_surface;
 struct wl_callback *frame_callback;
-
 static uint32_t layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
 static uint32_t anchor = 0;
 static uint32_t width = 450;
@@ -66,33 +49,29 @@ struct wl_cursor_image *cursor_image;
 struct wl_cursor_theme *cursor_theme;
 struct wl_surface *cursor_surface, *input_surface;
 
+//Functions needed for shared memory
+static int os_create_anonymous_file(off_t size);
+static int create_tmpfile_cloexec(char *tmpname);
+static int set_cloexec_or_close(int fd);
+
+//Functions to actually draw and init our resources
 static void draw(void);
 static void initWayland(void);
 
 static void draw(void) {
-	eglMakeCurrent(egl.display, egl_surface, egl_surface, egl.context);
-	
-	glViewport(0, 0, width, height);
-	glClearColor(1, 1, 1, alpha);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	eglSwapBuffers(egl.display, egl_surface);
+
 }
 
+//Registry for our wayland to handle events
 static void layer_surface_configure(void *data, struct zwlr_layer_surface_v1 *surface, uint32_t serial, uint32_t w, uint32_t h)
 {
 	width = w;
 	height = h;
-	if (egl_window) {
-		wl_egl_window_resize(egl_window, width, height, 0, 0);
-	}
 	zwlr_layer_surface_v1_ack_configure(surface, serial);
 }
 
 static void layer_surface_closed(void *data, struct zwlr_layer_surface_v1 *surface)
 {
-	//wlr_egl_destroy_surface(&egl, egl_surface);
-	wl_egl_window_destroy(egl_window);
 	zwlr_layer_surface_v1_destroy(surface);
 	wl_surface_destroy(wl_surface);
 	run_display = false;
@@ -262,8 +241,8 @@ static void handle_global(void *data, struct wl_registry *registry, uint32_t nam
 		wl_seat_add_listener(seat, &seat_listener, NULL);
 	} else if (strcmp(interface, zwlr_layer_shell_v1_interface.name) == 0) {
 		layer_shell = wl_registry_bind(registry, name, &zwlr_layer_shell_v1_interface, 1);
-	} else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
-		xdg_wm_base = wl_registry_bind(registry, name, &xdg_wm_base_interface, 1);
+	//} else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
+	//	xdg_wm_base = wl_registry_bind(registry, name, &xdg_wm_base_interface, 1);
 	}
 }
 
@@ -276,24 +255,6 @@ static const struct wl_registry_listener registry_listener = {
 	.global = handle_global,
 	.global_remove = handle_global_remove,
 };
-
-//Function to end the program when something happens and print to console.
-static void die(const char *format, ...)
-{
-	va_list ap;
-	va_start(ap, format);
-	vfprintf(stderr, format, ap);
-	fprintf(stderr, "\n");
-	va_end(ap);
-	exit(EXIT_FAILURE);
-
-}
-
-void expire(int sig)
-{
-	fprintf(stdout, "Notifcation Success\n");
-	exit(EXIT_SUCCESS);
-}
 
 int main(int argc, char *argv[])
 {
@@ -362,9 +323,6 @@ static void initWayland(void)
 	assert(cursor_surface);
 
 	//This is where we set up our surfaces and rendering.
-	EGLint attribs[] = { EGL_ALPHA_SIZE, 8, EGL_NONE };
-	wlr_egl_init(&egl, EGL_PLATFORM_WAYLAND_EXT, display, attribs, WL_SHM_FORMAT_ARGB8888);
-
 	wl_surface = wl_compositor_create_surface(compositor);
 	assert(wl_surface);
 
@@ -381,8 +339,95 @@ static void initWayland(void)
 	wl_surface_commit(wl_surface);
 	wl_display_roundtrip(display);
 
-	egl_window = wl_egl_window_create(wl_surface, width, height);
-	assert(egl_window);
-	egl_surface = wlr_egl_create_surface(&egl, egl_window);
-	assert(egl_surface);
+}
+
+//Shm and util functions
+static int os_create_anonymous_file(off_t size)
+{
+	static const char template[] = "/herbew-shared-XXXXXX";
+	const char *path;
+	char *name;
+	int fd;
+	int ret;
+
+	path = getenv("XDG_RUNTIME_DIR");
+	if (!path) {
+		errno = ENOENT;
+		return -1;
+	}
+
+	name = malloc(strlen(path) + sizeof(template));
+	if (!name) {
+		return -1;
+	}
+
+	strcpy(name, path);
+	strcat(name, template);
+
+
+	fd = create_tmpfile_cloexec(name);
+	free(name);
+
+	if (fd < 0) {
+		return -1;
+	}
+	ret = posix_fallocate(fd, 0, size);
+	if (ret != 0) {
+		close(fd);
+		errno = ret;
+		return -1;
+	}
+	return fd;
+}
+
+static int create_tmpfile_cloexec(char *tmpname)
+{
+	int fd;
+#ifdef HAVE_MKOSTEMP
+	fd = mkostemp(tmpname, O_CLOEXEC);
+	if (fd >= 0) {
+		unlink(tmpname);
+	}
+#else
+	fd = mkstemp(tmpname);
+	if (fd >= 0) {
+		fd = set_cloexec_or_close(fd);
+		unlink(tmpname);
+	}
+#endif
+	return fd;
+}
+
+static int set_cloexec_or_close(int fd)
+{
+	long flags;
+
+	if (fd == -1) {
+		return -1;
+	}
+
+	flags = fcntl(fd, F_GETFD);
+	if (flags == -1) {
+		goto err;
+	}
+
+	if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) == -1) {
+		goto err;
+	}
+	return fd;
+err:
+	close(fd);
+	return -1;
+}
+
+//Function to end the program when something happens and print to console.
+static void die(const char *format, ...)
+{
+	va_list ap;
+	va_start(ap, format);
+	vfprintf(stderr, format, ap);
+	fprintf(stderr, "\n");
+	va_end(ap);
+	exit(EXIT_FAILURE);
+
 }
