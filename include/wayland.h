@@ -25,6 +25,7 @@ struct wayland_state {
 };
 
 int init_wayland(void);
+int update_wayland(void);
 int free_wayland(void);
 
 #endif

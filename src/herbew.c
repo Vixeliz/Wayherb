@@ -10,6 +10,11 @@ int main(int argc, char *argv[])
 		die("Usage: %s body", argv[0]);
 	}
 
+	init_wayland();
+
+	update_wayland();
+
+	free_wayland();
 	exit(EXIT_SUCCESS);
 
 }

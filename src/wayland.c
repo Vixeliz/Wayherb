@@ -1,5 +1,8 @@
 #include <string.h>
+#include <stdbool.h>
 #include "wayland.h"
+#include "config.h"
+#include "util.h"
 #include "shm.h"
 
 //Local globals
@@ -7,8 +10,32 @@ static struct wayland_state wayland;
 static uint32_t output = UINT32_MAX;
 static int cur_x = -1, cur_y = -1;
 static int button = 0;
+static bool run_display = true;
+static uint32_t layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
+static bool keyboard_interactive = false;
 
-//Listeners and handles
+/* Listeners and handles */
+
+//Layer_shell listener
+
+static void layer_surface_configure(void *data, struct zwlr_layer_surface_v1 *surface, uint32_t serial, uint32_t w, uint32_t h)
+{
+	zwlr_layer_surface_v1_ack_configure(surface, serial);
+}
+
+static void layer_surface_closed(void *data, struct zwlr_layer_surface_v1 *surface)
+{
+	zwlr_layer_surface_v1_destroy(surface);
+	wl_surface_destroy(wayland.wl_surface);
+	run_display = false;
+}
+
+struct zwlr_layer_surface_v1_listener layer_surface_listener = {
+	.configure = layer_surface_configure,
+	.closed = layer_surface_closed,
+};
+
+//Pointer listeners and events
 static void wl_pointer_enter(void *data, struct wl_pointer *wl_pointer, uint32_t serial, struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y)
 {
 	struct wl_cursor_image *image;
@@ -44,6 +71,7 @@ struct wl_pointer_listener pointer_listener = {
 	.button = wl_pointer_button,
 };
 
+//Seat listener
 static void seat_handle_capabilities(void *data, struct wl_seat *wl_seat, enum wl_seat_capability caps)
 {
 	if((caps & WL_SEAT_CAPABILITY_POINTER)) {
@@ -91,3 +119,67 @@ static const struct wl_registry_listener registry_listener = {
 	.global = registry_global,
 	.global_remove = registry_handle_remove,
 };
+
+/* Wayland intialization, freeing, and main loop for drawing and input. */
+static void draw()
+{
+}
+
+int init_wayland(void)
+{
+	//Some variables for setting up our layer_surface
+	char *namespace = "herbew";
+	int exclusive_zone = height;
+	bool found;
+
+	//Connect to the wayland server
+	wayland.display = wl_display_connect(NULL);
+	if (!wayland.display)
+		die("Failed to create display\n");
+
+	//Set up our registry for getting events
+	struct wl_registry *registry = wl_display_get_registry(wayland.display);
+	wl_registry_add_listener(registry, &registry_listener, NULL);
+	wl_display_roundtrip(wayland.display);
+	
+	if (!wayland.compositor)
+		die("No compositor available\n");
+
+	if (!wayland.shm)
+		die("Shared memory buffer not available\n");
+
+	if (!wayland.layer_shell)
+		die("Layer shell not available\n");
+	
+	//Cursor image for being able to see the cursor over our notifcations
+	wayland.cursor_theme = wl_cursor_theme_load(NULL, 16, wayland.shm);
+	struct wl_cursor *cursor = wl_cursor_theme_get_cursor(wayland.cursor_theme, "left ptr");
+	//wayland.cursor_image = cursor->images[0];
+	wayland.cursor_surface = wl_compositor_create_surface(wayland.compositor);
+	
+	//Our surfaces for our notifications
+	wayland.wl_surface = wl_compositor_create_surface(wayland.compositor);
+	wayland.layer_surface = zwlr_layer_shell_v1_get_layer_surface(wayland.layer_shell, wayland.wl_surface, wayland.wl_output, layer, namespace);
+
+	//Configure how layer surface acts
+	zwlr_layer_surface_v1_set_size(wayland.layer_surface, width, height);
+	zwlr_layer_surface_v1_set_anchor(wayland.layer_surface, anchor);
+	zwlr_layer_surface_v1_set_exclusive_zone(wayland.layer_surface, exclusive_zone);
+	zwlr_layer_surface_v1_set_margin(wayland.layer_surface, margin_top, margin_right, margin_bottom, margin_left);
+	zwlr_layer_surface_v1_set_keyboard_interactivity(wayland.layer_surface, keyboard_interactive);
+	zwlr_layer_surface_v1_add_listener(wayland.layer_surface, &layer_surface_listener, wayland.layer_surface);
+
+}
+
+int update_wayland(void)
+{
+	while(wl_display_dispatch(wayland.display) != -1 && run_display) {
+		draw();
+	}
+}
+
+int free_wayland(void)
+{
+
+
+}
