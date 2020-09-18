@@ -121,8 +121,9 @@ static const struct wl_registry_listener registry_listener = {
 };
 
 /* Wayland intialization, freeing, and main loop for drawing and input. */
-static void draw()
+void draw()
 {
+
 }
 
 int init_wayland(void)
@@ -130,7 +131,6 @@ int init_wayland(void)
 	//Some variables for setting up our layer_surface
 	char *namespace = "herbew";
 	int exclusive_zone = height;
-	bool found;
 
 	//Connect to the wayland server
 	wayland.display = wl_display_connect(NULL);
@@ -153,7 +153,7 @@ int init_wayland(void)
 	
 	//Cursor image for being able to see the cursor over our notifcations
 	wayland.cursor_theme = wl_cursor_theme_load(NULL, 16, wayland.shm);
-	struct wl_cursor *cursor = wl_cursor_theme_get_cursor(wayland.cursor_theme, "left ptr");
+	//struct wl_cursor *cursor = wl_cursor_theme_get_cursor(wayland.cursor_theme, "left ptr");
 	//wayland.cursor_image = cursor->images[0];
 	wayland.cursor_surface = wl_compositor_create_surface(wayland.compositor);
 	
@@ -169,17 +169,11 @@ int init_wayland(void)
 	zwlr_layer_surface_v1_set_keyboard_interactivity(wayland.layer_surface, keyboard_interactive);
 	zwlr_layer_surface_v1_add_listener(wayland.layer_surface, &layer_surface_listener, wayland.layer_surface);
 
-}
-
-int update_wayland(void)
-{
-	while(wl_display_dispatch(wayland.display) != -1 && run_display) {
-		draw();
-	}
+	return 1;
 }
 
 int free_wayland(void)
 {
 
-
+return 1;
 }
