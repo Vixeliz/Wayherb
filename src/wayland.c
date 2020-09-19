@@ -158,9 +158,18 @@ static struct wl_buffer *create_buffer() {
 
 	wayland.cairo_surface = cairo_image_surface_create_for_data(shm_data, CAIRO_FORMAT_ARGB32, width, height, stride);
 	wayland.cairo = cairo_create(wayland.cairo_surface);
-	cairo_set_source_rgb(wayland.cairo, 0.2, 0.2, 0.2);
 	
+	//cairo_scale(wayland.cairo, width, height);
+	cairo_rectangle(wayland.cairo, 0.0, 0.0, 1.0, 1.0);
+	//cairo_clip(wayland.cairo);
+	cairo_set_source_rgb(wayland.cairo, 0.2, 0.2, 0.2);
 	cairo_paint(wayland.cairo);
+
+	cairo_set_line_width(wayland.cairo, border_size);
+	cairo_set_source_rgb(wayland.cairo, 1.0, 1.0, 1.0);
+	cairo_rectangle(wayland.cairo, 0, 0, width, height);
+	cairo_stroke(wayland.cairo);
+	cairo_fill(wayland.cairo);
 
 	return buffer;
 }
