@@ -72,8 +72,7 @@ int main(int argc, char *argv[])
 	
 	for (;;) {
 		if (should_exit == 0) {
-			if (draw() == 1)
-				should_exit = 1;
+			draw();
 		} else {
 			break;
 		}
