@@ -171,6 +171,13 @@ static struct wl_buffer *create_buffer() {
 	cairo_stroke(wayland.cairo);
 	cairo_fill(wayland.cairo);
 
+	cairo_select_font_face(wayland.cairo, "serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+	cairo_set_font_size(wayland.cairo, 16.0);
+	cairo_set_source_rgb(wayland.cairo, 1, 1, 1);
+	cairo_move_to(wayland.cairo, 16.0, height/2);
+	cairo_show_text(wayland.cairo, "Hello, test");
+	cairo_fill(wayland.cairo);
+
 	return buffer;
 }
 
