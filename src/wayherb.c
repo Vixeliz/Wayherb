@@ -72,6 +72,7 @@ int main(int argc, char *argv[])
 	
 	for (;;) {
 		while(should_exit == 0) {
+			sleep(0.5);
 			draw();
 		}
 
