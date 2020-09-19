@@ -37,6 +37,11 @@ int main(int argc, char *argv[])
 		die("Usage: %s body", argv[0]);
 	}
 	
+	if (argc > 2) {
+		sem_unlink("/wayherb");
+		die("Currently wayherb only allows one argument however this will change\n");
+	}
+
 	struct sigaction act_expire, act_ignore;
 	act_expire.sa_handler = expire;
 	act_expire.sa_flags = SA_RESTART;
