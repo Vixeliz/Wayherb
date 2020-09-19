@@ -3,9 +3,12 @@
 #include <wayland-egl.h>
 #include <wlr/render/egl.h>
 
+#include <linux/input-event-codes.h>
+#include <signal.h>
 #include <string.h>
 #include <stdbool.h>
 #include <sys/mman.h>
+#include <unistd.h>
 #include "wayland.h"
 #include "config.h"
 #include "util.h"
@@ -21,7 +24,6 @@ static struct wayland_state wayland;
 static uint32_t output = UINT32_MAX;
 static int cur_x = -1, cur_y = -1;
 static int button = 0;
-static bool run_display = true;
 static uint32_t layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
 static bool keyboard_interactive = false;
 
@@ -43,7 +45,6 @@ static void layer_surface_closed(void *data, struct zwlr_layer_surface_v1 *surfa
 	wl_egl_window_destroy(egl_window);
 	zwlr_layer_surface_v1_destroy(surface);
 	wl_surface_destroy(wayland.wl_surface);
-	run_display = false;
 }
 
 struct zwlr_layer_surface_v1_listener layer_surface_listener = {
@@ -73,7 +74,13 @@ static void wl_pointer_button(void *data, struct wl_pointer *wl_pointer, uint32_
 {
 	if (wayland.input_surface == wayland.wl_surface) {
 		if (state == WL_POINTER_BUTTON_STATE_PRESSED) {
-			button = 1;
+			if (button == BTN_RIGHT) {
+			pid_t pid = getpid();
+			kill(pid, SIGUSR2);	
+			} else if (button == BTN_LEFT) {
+				pid_t pid = getpid();
+				kill(pid, SIGUSR1);
+			}
 		}
 	}
 }
