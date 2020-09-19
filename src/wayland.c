@@ -54,12 +54,12 @@ struct zwlr_layer_surface_v1_listener layer_surface_listener = {
 //Pointer listeners and events
 static void wl_pointer_enter(void *data, struct wl_pointer *wl_pointer, uint32_t serial, struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y)
 {
-	struct wl_cursor_image *image;
-	image = wayland.cursor_image;
+	//struct wl_cursor_image *image;
+	//image = wayland.cursor_image;
 
-	wl_surface_attach(wayland.cursor_surface, wl_cursor_image_get_buffer(image), 0, 0);
-	wl_surface_damage(wayland.cursor_surface, 1, 0, image->width, image->height);
-	wl_pointer_set_cursor(wl_pointer, serial, wayland.cursor_surface, image->hotspot_x, image->hotspot_y);
+	//wl_surface_attach(wayland.cursor_surface, wl_cursor_image_get_buffer(image), 0, 0);
+	//wl_surface_damage(wayland.cursor_surface, 1, 0, image->width, image->height);
+	//wl_pointer_set_cursor(wl_pointer, serial, wayland.cursor_surface, image->hotspot_x, image->hotspot_y);
 	wayland.input_surface = surface;
 }
 
@@ -77,7 +77,11 @@ static void wl_pointer_motion(void *data, struct wl_pointer *wl_pointer, uint32_
 
 static void wl_pointer_button(void *data, struct wl_pointer *wl_pointer, uint32_t serial, uint32_t time, uint32_t button, uint32_t state)
 {
-
+	if (wayland.input_surface == wayland.wl_surface) {
+		if (state == WL_POINTER_BUTTON_STATE_PRESSED) {
+			button = 1;
+		}
+	}
 }
 
 struct wl_pointer_listener pointer_listener = {
@@ -137,8 +141,11 @@ static const struct wl_registry_listener registry_listener = {
 };
 
 /* Wayland intialization, freeing, and main loop for drawing and input. */
-void draw()
+int draw()
 {
+	if (wl_display_dispatch_pending(wayland.display) == -1)
+		return 1;
+	
 	eglMakeCurrent(egl.display, egl_surface, egl_surface, egl.context);
 
 	glViewport(0, 0, width, height);
@@ -146,6 +153,7 @@ void draw()
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	eglSwapBuffers(egl.display, egl_surface);
+	return 0;
 }
 
 int init_wayland(void)
@@ -208,5 +216,5 @@ int init_wayland(void)
 int free_wayland(void)
 {
 
-return 1;
+	return 1;
 }

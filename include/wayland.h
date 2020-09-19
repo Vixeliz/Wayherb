@@ -32,6 +32,7 @@ struct wayland_state {
 
 int init_wayland(void);
 int free_wayland(void);
-void draw(void);
+int update_wayland(void);
+int draw(void);
 
 #endif

@@ -63,12 +63,14 @@ int main(int argc, char *argv[])
 
 	if (duration != 0)
 		alarm(duration);
-
+	
+	
 	for (;;) {
-		draw();
 		if (should_exit == 0) {
-		} else if (should_exit == 1) {
-		break;
+			if (draw() == 1)
+				should_exit = 1;
+		} else {
+			break;
 		}
 	}
 
