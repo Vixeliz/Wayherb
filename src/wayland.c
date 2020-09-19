@@ -129,7 +129,7 @@ static const struct wl_registry_listener registry_listener = {
 };
 
 /* Wayland intialization, freeing, and main loop for drawing and input. */
-int draw()
+int draw(void)
 {
 	
 	if (wl_display_dispatch(wayland.display) == -1)
@@ -138,7 +138,7 @@ int draw()
 	return 0;
 }
 
-static struct wl_buffer *create_buffer() {
+static struct wl_buffer *create_buffer(int argc, char *argv[]) {
 	int stride = width * 4;
 	int size = stride * height;
 
@@ -175,13 +175,13 @@ static struct wl_buffer *create_buffer() {
 	cairo_set_font_size(wayland.cairo, 16.0);
 	cairo_set_source_rgb(wayland.cairo, 1, 1, 1);
 	cairo_move_to(wayland.cairo, 16.0, height/2);
-	cairo_show_text(wayland.cairo, "Hello, test");
+	cairo_show_text(wayland.cairo, argv[1]);
 	cairo_fill(wayland.cairo);
 
 	return buffer;
 }
 
-int init_wayland(void)
+int init_wayland(int argc, char *argv[])
 {
 	//Some variables for setting up our layer_surface
 	char *namespace = "herbew";
@@ -211,7 +211,7 @@ int init_wayland(void)
 	wayland.cursor_surface = wl_compositor_create_surface(wayland.compositor);
 	
 	//Buffer
-	wayland.buffer = create_buffer();
+	wayland.buffer = create_buffer(argc, argv);
 
 	wayland.wl_surface = wl_compositor_create_surface(wayland.compositor);
 	wayland.layer_surface = zwlr_layer_shell_v1_get_layer_surface(wayland.layer_shell, wayland.wl_surface, wayland.wl_output, layer, namespace);

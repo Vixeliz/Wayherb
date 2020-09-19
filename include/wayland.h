@@ -31,7 +31,7 @@ struct wayland_state {
 	struct wl_surface *cursor_surface, *input_surface;
 };
 
-int init_wayland(void);
+int init_wayland(int argc, char *argv[]);
 int free_wayland(void);
 int update_wayland(void);
 int draw(void);
