@@ -54,12 +54,6 @@ struct zwlr_layer_surface_v1_listener layer_surface_listener = {
 //Pointer listeners and events
 static void wl_pointer_enter(void *data, struct wl_pointer *wl_pointer, uint32_t serial, struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y)
 {
-	//struct wl_cursor_image *image;
-	//image = wayland.cursor_image;
-
-	//wl_surface_attach(wayland.cursor_surface, wl_cursor_image_get_buffer(image), 0, 0);
-	//wl_surface_damage(wayland.cursor_surface, 1, 0, image->width, image->height);
-	//wl_pointer_set_cursor(wl_pointer, serial, wayland.cursor_surface, image->hotspot_x, image->hotspot_y);
 	wayland.input_surface = surface;
 }
 
@@ -183,8 +177,6 @@ int init_wayland(void)
 	
 	//Cursor image for being able to see the cursor over our notifcations
 	wayland.cursor_theme = wl_cursor_theme_load(NULL, 16, wayland.shm);
-	//struct wl_cursor *cursor = wl_cursor_theme_get_cursor(wayland.cursor_theme, "left ptr");
-	//wayland.cursor_image = cursor->images[0];
 	wayland.cursor_surface = wl_compositor_create_surface(wayland.compositor);
 	
 	//Our surfaces for our notifications
