@@ -33,7 +33,7 @@ void expire(int sig)
 int main(int argc, char *argv[])
 {
 	if (argc == 1) {
-		sem_unlink("/herbew");
+		sem_unlink("/wayherb");
 		die("Usage: %s body", argv[0]);
 	}
 	
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	
 	init_wayland();
 	
-	sem_t *mutex = sem_open("/herbew", O_CREAT, 0644, 1);
+	sem_t *mutex = sem_open("/wayherb", O_CREAT, 0644, 1);
 	sem_wait(mutex);
 	
 	sigaction(SIGUSR1, &act_expire, 0);

@@ -1,8 +1,4 @@
 //Testing area
-#include <GLES2/gl2.h>
-#include <wayland-egl.h>
-#include <wlr/render/egl.h>
-
 #include <linux/input-event-codes.h>
 #include <signal.h>
 #include <string.h>
@@ -12,12 +8,6 @@
 #include "wayland.h"
 #include "config.h"
 #include "util.h"
-#include "shm.h"
-
-//Egl test
-struct wlr_egl egl;
-struct wl_egl_window *egl_window;
-struct wlr_egl_surface *egl_surface;
 
 //Local globals
 static struct wayland_state wayland;
@@ -33,16 +23,12 @@ static bool keyboard_interactive = false;
 
 static void layer_surface_configure(void *data, struct zwlr_layer_surface_v1 *surface, uint32_t serial, uint32_t w, uint32_t h)
 {
-	if (egl_window)
-		wl_egl_window_resize(egl_window, width, height, 0, 0);
 
 	zwlr_layer_surface_v1_ack_configure(surface, serial);
 }
 
 static void layer_surface_closed(void *data, struct zwlr_layer_surface_v1 *surface)
 {
-	wlr_egl_destroy_surface(&egl, egl_surface);
-	wl_egl_window_destroy(egl_window);
 	zwlr_layer_surface_v1_destroy(surface);
 	wl_surface_destroy(wayland.wl_surface);
 }
@@ -75,8 +61,8 @@ static void wl_pointer_button(void *data, struct wl_pointer *wl_pointer, uint32_
 	if (wayland.input_surface == wayland.wl_surface) {
 		if (state == WL_POINTER_BUTTON_STATE_PRESSED) {
 			if (button == BTN_RIGHT) {
-			pid_t pid = getpid();
-			kill(pid, SIGUSR2);	
+				pid_t pid = getpid();
+				kill(pid, SIGUSR2);	
 			} else if (button == BTN_LEFT) {
 				pid_t pid = getpid();
 				kill(pid, SIGUSR1);
@@ -144,16 +130,11 @@ static const struct wl_registry_listener registry_listener = {
 /* Wayland intialization, freeing, and main loop for drawing and input. */
 int draw()
 {
+	
 	if (wl_display_dispatch_pending(wayland.display) == -1)
 		return 1;
 	
-	eglMakeCurrent(egl.display, egl_surface, egl_surface, egl.context);
-
-	glViewport(0, 0, width, height);
-	glClearColor(0.2, 0.2, 0.2, alpha);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	eglSwapBuffers(egl.display, egl_surface);
+	
 	return 0;
 }
 
@@ -186,10 +167,6 @@ int init_wayland(void)
 	wayland.cursor_theme = wl_cursor_theme_load(NULL, 16, wayland.shm);
 	wayland.cursor_surface = wl_compositor_create_surface(wayland.compositor);
 	
-	//Our surfaces for our notifications
-	EGLint attribs[] = { EGL_ALPHA_SIZE, 8, EGL_NONE };
-	wlr_egl_init(&egl, EGL_PLATFORM_WAYLAND_EXT, wayland.display, attribs, WL_SHM_FORMAT_ARGB8888);
-
 	wayland.wl_surface = wl_compositor_create_surface(wayland.compositor);
 	wayland.layer_surface = zwlr_layer_shell_v1_get_layer_surface(wayland.layer_shell, wayland.wl_surface, wayland.wl_output, layer, namespace);
 
@@ -203,9 +180,6 @@ int init_wayland(void)
 
 	wl_surface_commit(wayland.wl_surface);
 	wl_display_roundtrip(wayland.display);
-
-	egl_window = wl_egl_window_create(wayland.wl_surface, width, height);
-	egl_surface = wlr_egl_create_surface(&egl, egl_window);
 
 	fprintf(stdout, "Finished init wayland\n");
 
