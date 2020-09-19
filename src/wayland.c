@@ -156,9 +156,16 @@ static struct wl_buffer *create_buffer() {
 	struct wl_buffer *buffer = wl_shm_pool_create_buffer(pool, 0, width, height, stride, WL_SHM_FORMAT_ARGB8888);
 	wl_shm_pool_destroy(pool);
 
+	wayland.cairo_surface = cairo_image_surface_create_for_data(shm_data, CAIRO_FORMAT_ARGB32, width, height, stride);
+	wayland.cairo = cairo_create(wayland.cairo_surface);
+	cairo_set_source_rgb(wayland.cairo, 0.2, 0.2, 0.2);
+	//cairo_rectangle(wayland.cairo, 0.25, 0.5, 0.5, 0.5);
+	//cairo_fill(wayland.cairo);
+	cairo_paint_with_alpha(wayland.cairo, 1.0);
+	/*
 	uint32_t *pixel = shm_data;
 	for (int n = 0; n < width * height; n++)
-		*pixel++ = 0xffff;
+		*pixel++ = 0x7E0;*/
 
 	return buffer;
 }

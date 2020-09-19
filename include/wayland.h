@@ -20,8 +20,8 @@ struct wayland_state {
 	struct wl_surface *wl_surface;
 
 	//Cairo and pixman
-	struct cairo_surface_t *cairo_surface;
-	struct cairo_t *cairo;
+	cairo_surface_t *cairo_surface;
+	cairo_t *cairo;
 	
 	//Input
 	struct wl_seat *seat;
