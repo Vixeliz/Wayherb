@@ -71,11 +71,11 @@ int main(int argc, char *argv[])
 	
 	
 	for (;;) {
-		if (should_exit == 0) {
+		while(should_exit == 0) {
 			draw();
-		} else {
-			break;
 		}
+
+		break;
 	}
 
 	sem_post(mutex);

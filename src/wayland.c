@@ -131,10 +131,13 @@ static const struct wl_registry_listener registry_listener = {
 /* Wayland intialization, freeing, and main loop for drawing and input. */
 int draw(void)
 {
-	//TODO: fix only mouse or sigterm working. It has to do with this loop but tbh I am too tired to figure it out rn
-	if (wl_display_dispatch(wayland.display) == -1)
-		return 1;
-	
+	wl_display_prepare_read(wayland.display);
+	wl_display_dispatch_pending(wayland.display);
+	wl_display_flush(wayland.display);
+	wl_display_read_events(wayland.display);
+	wl_display_dispatch_pending(wayland.display);
+	//wl_display_dispatch(wayland.display);
+
 	return 0;
 }
 
