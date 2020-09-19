@@ -13,6 +13,7 @@ struct wayland_state {
 	struct wl_compositor *compositor;
 	struct wl_shm *shm;
 	struct wl_shm_pool *pool;
+	struct wl_buffer *buffer;
 	struct zwlr_layer_shell_v1 *layer_shell;
 	struct zwlr_layer_surface_v1 *layer_surface;
 	struct wl_output *wl_output;

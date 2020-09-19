@@ -16,6 +16,7 @@ static int cur_x = -1, cur_y = -1;
 static int button = 0;
 static uint32_t layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
 static bool keyboard_interactive = false;
+static void *shm_data = NULL;
 
 /* Listeners and handles */
 
@@ -25,6 +26,7 @@ static void layer_surface_configure(void *data, struct zwlr_layer_surface_v1 *su
 {
 
 	zwlr_layer_surface_v1_ack_configure(surface, serial);
+	wl_surface_commit(wayland.wl_surface);
 }
 
 static void layer_surface_closed(void *data, struct zwlr_layer_surface_v1 *surface)
@@ -138,6 +140,31 @@ int draw()
 	return 0;
 }
 
+static struct wl_buffer *create_buffer() {
+	int stride = width * 4;
+	int size = stride * height;
+
+	int fd = os_create_anonymous_file(size);
+	if (fd < 0)
+		die("Failed creating a buffer\n");
+
+	shm_data = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	if (shm_data == MAP_FAILED) {
+		close(fd);
+		die("Mmap failed\n");
+	}
+	
+	struct wl_shm_pool *pool = wl_shm_create_pool(wayland.shm, fd, size);
+	struct wl_buffer *buffer = wl_shm_pool_create_buffer(pool, 0, width, height, stride, WL_SHM_FORMAT_ARGB8888);
+	wl_shm_pool_destroy(pool);
+
+	uint32_t *pixel = shm_data;
+	for (int n = 0; n < width * height; n++)
+		*pixel++ = 0xffff;
+
+	return buffer;
+}
+
 int init_wayland(void)
 {
 	//Some variables for setting up our layer_surface
@@ -167,6 +194,9 @@ int init_wayland(void)
 	wayland.cursor_theme = wl_cursor_theme_load(NULL, 16, wayland.shm);
 	wayland.cursor_surface = wl_compositor_create_surface(wayland.compositor);
 	
+	//Buffer
+	wayland.buffer = create_buffer();
+
 	wayland.wl_surface = wl_compositor_create_surface(wayland.compositor);
 	wayland.layer_surface = zwlr_layer_shell_v1_get_layer_surface(wayland.layer_shell, wayland.wl_surface, wayland.wl_output, layer, namespace);
 
@@ -178,6 +208,10 @@ int init_wayland(void)
 	zwlr_layer_surface_v1_set_keyboard_interactivity(wayland.layer_surface, keyboard_interactive);
 	zwlr_layer_surface_v1_add_listener(wayland.layer_surface, &layer_surface_listener, wayland.layer_surface);
 
+	wl_surface_commit(wayland.wl_surface);
+	wl_display_roundtrip(wayland.display);
+
+	wl_surface_attach(wayland.wl_surface, wayland.buffer, 0, 0);
 	wl_surface_commit(wayland.wl_surface);
 	wl_display_roundtrip(wayland.display);
 
