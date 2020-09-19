@@ -24,7 +24,6 @@ static void *shm_data = NULL;
 
 static void layer_surface_configure(void *data, struct zwlr_layer_surface_v1 *surface, uint32_t serial, uint32_t w, uint32_t h)
 {
-
 	zwlr_layer_surface_v1_ack_configure(surface, serial);
 	wl_surface_commit(wayland.wl_surface);
 }
@@ -133,9 +132,8 @@ static const struct wl_registry_listener registry_listener = {
 int draw()
 {
 	
-	if (wl_display_dispatch_pending(wayland.display) == -1)
+	if (wl_display_dispatch(wayland.display) == -1)
 		return 1;
-	
 	
 	return 0;
 }
