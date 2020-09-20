@@ -165,18 +165,18 @@ static struct wl_buffer *create_buffer(int argc, char *argv[]) {
 	//cairo_scale(wayland.cairo, width, height);
 	cairo_rectangle(wayland.cairo, 0.0, 0.0, 1.0, 1.0);
 	//cairo_clip(wayland.cairo);
-	cairo_set_source_rgb(wayland.cairo, 0.2, 0.2, 0.2);
+	cairo_set_source_rgba(wayland.cairo, bgr, bgb, bgg, alpha);
 	cairo_paint(wayland.cairo);
 
 	cairo_set_line_width(wayland.cairo, border_size);
-	cairo_set_source_rgb(wayland.cairo, 1.0, 1.0, 1.0);
+	cairo_set_source_rgba(wayland.cairo, brr, brb, brg, alpha);
 	cairo_rectangle(wayland.cairo, 0, 0, width, height);
 	cairo_stroke(wayland.cairo);
 	cairo_fill(wayland.cairo);
 
 	cairo_select_font_face(wayland.cairo, "serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
 	cairo_set_font_size(wayland.cairo, 16.0);
-	cairo_set_source_rgb(wayland.cairo, 1, 1, 1);
+	cairo_set_source_rgb(wayland.cairo, fr, fb, fg);
 	cairo_move_to(wayland.cairo, 16.0, height/2);
 	cairo_show_text(wayland.cairo, argv[1]);
 	cairo_fill(wayland.cairo);
