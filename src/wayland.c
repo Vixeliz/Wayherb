@@ -141,7 +141,7 @@ int draw(void)
 	return 0;
 }
 
-static struct wl_buffer *create_buffer(int argc, char *argv[]) {
+static struct wl_buffer *create_buffer(int argc, char *argv[], int height) {
 	int stride = width * 4;
 	int size = stride * height;
 
@@ -175,18 +175,38 @@ static struct wl_buffer *create_buffer(int argc, char *argv[]) {
 	cairo_fill(wayland.cairo);
 
 	cairo_select_font_face(wayland.cairo, "serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-	cairo_set_font_size(wayland.cairo, 16.0);
+	cairo_set_font_size(wayland.cairo, font_size);
+
 	cairo_set_source_rgb(wayland.cairo, fr, fb, fg);
-	cairo_move_to(wayland.cairo, 16.0, height/2);
+	cairo_move_to(wayland.cairo, font_size, font_size);
 	cairo_show_text(wayland.cairo, argv[1]);
 	cairo_fill(wayland.cairo);
 
 	return buffer;
 }
 
+int get_height(int argc, char *argv[])
+{
+	cairo_t *cairo;
+	cairo_surface_t *temp_surface;
+	temp_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, 1);
+	cairo = cairo_create(temp_surface);
+	cairo_text_extents_t text_extents;
+	cairo_select_font_face(cairo, "serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+	cairo_set_font_size(cairo, font_size);
+	cairo_text_extents(cairo, argv[1], &text_extents);
+	if(text_extents.width + font_size * 2 > width) {
+		printf("Create a new line here\n");
+		return font_size * 2;
+	}
+		return font_size * 2;
+		
+}
+
 int init_wayland(int argc, char *argv[])
 {
 	//Some variables for setting up our layer_surface
+	int height = get_height(argc, argv);
 	char *namespace = "herbew";
 	int exclusive_zone = height;
 
@@ -214,7 +234,7 @@ int init_wayland(int argc, char *argv[])
 	wayland.cursor_surface = wl_compositor_create_surface(wayland.compositor);
 	
 	//Buffer
-	wayland.buffer = create_buffer(argc, argv);
+	wayland.buffer = create_buffer(argc, argv, height);
 
 	wayland.wl_surface = wl_compositor_create_surface(wayland.compositor);
 	wayland.layer_surface = zwlr_layer_shell_v1_get_layer_surface(wayland.layer_shell, wayland.wl_surface, wayland.wl_output, layer, namespace);

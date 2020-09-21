@@ -11,10 +11,9 @@ static const unsigned int padding = 15;
 static int32_t margin_right = 5, margin_bottom = 0, margin_left = 0, margin_top = 5;
 static uint32_t anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP + ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT; 
 static uint32_t width = 450;
-static uint32_t height = 150;
 static const unsigned int border_size = 3;
 static double alpha = 0.9;
-
+static float font_size = 16.0;
 
 //These all accept a value of 0.0 to 1.0 for red, green, and blue. The last character corresponds to the color
 //Background color
