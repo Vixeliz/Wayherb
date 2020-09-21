@@ -6,14 +6,23 @@ static const char *font_pattern = "monospace:size=10";
 static const unsigned line_spacing = 5;
 static const unsigned int padding = 15;
 */
+#define LEFT ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT
+#define RIGHT ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT
+#define TOP ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP
+#define BOTTOM ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM
+
 
 //Style options
-static int32_t margin_right = 5, margin_bottom = 0, margin_left = 0, margin_top = 5;
-static uint32_t anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP + ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT; 
+static int32_t margin_right = 0, margin_bottom = 0, margin_left = 0, margin_top = 0;
+//Where it shows up on screen for example top left would be LEFT+TOP or right top would be RIGHT+TOP, etc
+static uint32_t anchor = TOP;
 static uint32_t width = 450;
-static const unsigned int border_size = 3;
-static double alpha = 0.9;
+static const unsigned int border_size = 2;
+static double alpha = 1.0;
 static float font_size = 16.0;
+//If you set this to a higher number it will overlap things like bars. At 
+//zero it will go lower under your bar.
+static const int exclusive_zone = 0;
 
 //These all accept a value of 0.0 to 1.0 for red, green, and blue. The last character corresponds to the color
 //Background color

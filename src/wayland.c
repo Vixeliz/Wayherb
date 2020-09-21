@@ -210,7 +210,6 @@ int init_wayland(int argc, char *argv[])
 	//Some variables for setting up our layer_surface
 	int height = get_height(argc, argv);
 	char *namespace = "herbew";
-	int exclusive_zone = height;
 
 	//Connect to the wayland server
 	wayland.display = wl_display_connect(NULL);
