@@ -6,6 +6,7 @@ static const char *font_pattern = "monospace:size=10";
 static const unsigned line_spacing = 5;
 static const unsigned int padding = 15;
 */
+#include <stdbool.h>
 #define LEFT ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT
 #define RIGHT ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT
 #define TOP ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP
@@ -20,9 +21,9 @@ static uint32_t width = 450;
 static const unsigned int border_size = 2;
 static double alpha = 1.0;
 static float font_size = 16.0;
-//If you set this to a higher number it will overlap things like bars. At 
-//zero it will go lower under your bar.
-static const int exclusive_zone = 0;
+
+//Setting this to true makes it so windows will attempt to move out of the way for the notification
+static const bool exclusive_zone_on = true;
 
 //These all accept a value of 0.0 to 1.0 for red, green, and blue. The last character corresponds to the color
 //Background color
