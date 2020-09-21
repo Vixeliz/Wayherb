@@ -178,7 +178,8 @@ static struct wl_buffer *create_buffer(int argc, char *argv[], int height) {
 	cairo_set_font_size(wayland.cairo, font_size);
 
 	cairo_set_source_rgb(wayland.cairo, fr, fb, fg);
-	cairo_move_to(wayland.cairo, font_size, font_size);
+	//TODO: make this based on number of lines. For each line added divide the height by 2
+	cairo_move_to(wayland.cairo, font_size, height - font_size/2 - border_size);
 	cairo_show_text(wayland.cairo, argv[1]);
 	cairo_fill(wayland.cairo);
 
@@ -195,11 +196,12 @@ int get_height(int argc, char *argv[])
 	cairo_select_font_face(cairo, "serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
 	cairo_set_font_size(cairo, font_size);
 	cairo_text_extents(cairo, argv[1], &text_extents);
-	if(text_extents.width + font_size * 2 > width) {
-		printf("Create a new line here\n");
-		return font_size * 2;
+	double line_width = text_extents.width + font_size * 2;
+	if (line_width > width) {
+		return font_size * 2 * 2;
 	}
-		return font_size * 2;
+
+	return font_size * 2;
 		
 }
 
