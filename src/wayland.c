@@ -165,11 +165,11 @@ static struct wl_buffer *create_buffer(int argc, char *argv[], int height) {
 	//cairo_scale(wayland.cairo, width, height);
 	cairo_rectangle(wayland.cairo, 0.0, 0.0, 1.0, 1.0);
 	//cairo_clip(wayland.cairo);
-	cairo_set_source_rgba(wayland.cairo, bgr, bgb, bgg, alpha);
+	cairo_set_source_rgba(wayland.cairo, bgr, bgg, bgb, alpha);
 	cairo_paint(wayland.cairo);
 
 	cairo_set_line_width(wayland.cairo, border_size);
-	cairo_set_source_rgba(wayland.cairo, brr, brb, brg, alpha);
+	cairo_set_source_rgba(wayland.cairo, brr, brg, brb, alpha);
 	cairo_rectangle(wayland.cairo, 0, 0, width, height);
 	cairo_stroke(wayland.cairo);
 	cairo_fill(wayland.cairo);
@@ -177,7 +177,7 @@ static struct wl_buffer *create_buffer(int argc, char *argv[], int height) {
 	cairo_select_font_face(wayland.cairo, "serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
 	cairo_set_font_size(wayland.cairo, font_size);
 
-	cairo_set_source_rgb(wayland.cairo, fr, fb, fg);
+	cairo_set_source_rgb(wayland.cairo, fr, fg, fb);
 	//TODO: make this based on number of lines. For each line added divide the height by 2
 	cairo_move_to(wayland.cairo, font_size, height - font_size/2 - border_size);
 	cairo_show_text(wayland.cairo, argv[1]);

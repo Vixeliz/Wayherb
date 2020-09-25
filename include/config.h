@@ -18,27 +18,27 @@ static int32_t margin_right = 0, margin_bottom = 0, margin_left = 0, margin_top 
 //Where it shows up on screen for example top left would be LEFT+TOP or right top would be RIGHT+TOP, etc
 static uint32_t anchor = TOP;
 static uint32_t width = 450;
-static const unsigned int border_size = 2;
+static const unsigned int border_size = 3;
 static double alpha = 1.0;
 static float font_size = 16.0;
 
 //Setting this to true makes it so windows will attempt to move out of the way for the notification
-static const bool exclusive_zone_on = true;
+static const bool exclusive_zone_on = false;
 
 //These all accept a value of 0.0 to 1.0 for red, green, and blue. The last character corresponds to the color
 //Background color
-static const float bgr = 0.2;
-static const float bgb = 0.2;
-static const float bgg = 0.2;
+static const float bgr = 0.098;
+static const float bgb = 0.164;
+static const float bgg = 0.101;
 
 //Border color
-static const float brr = 1.0;
-static const float brb = 1.0;
-static const float brg = 1.0;
+static const float brr = 0.286;
+static const float brb = 0.921;
+static const float brg = 0.462;
 
 //Font color
-static const float fr = 1.0;
-static const float fb = 1.0;
-static const float fg = 1.0;
+static const float fr = 0.737;
+static const float fb = 0.839;
+static const float fg = 0.768;
 
 static const unsigned int duration = 5;
