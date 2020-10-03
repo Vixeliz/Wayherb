@@ -27,18 +27,18 @@ static const bool exclusive_zone_on = false;
 
 //These all accept a value of 0.0 to 1.0 for red, green, and blue. The last character corresponds to the color
 //Background color
-static const float bgr = 0.098;
-static const float bgb = 0.164;
-static const float bgg = 0.101;
+static const float bgr = 0.156;
+static const float bgb = 0.211;
+static const float bgg = 0.164;
 
 //Border color
-static const float brr = 0.286;
-static const float brb = 0.921;
-static const float brg = 0.462;
+static const float brr = 0.384;
+static const float brb = 0.643;
+static const float brg = 0.447;
 
 //Font color
-static const float fr = 0.737;
-static const float fb = 0.839;
-static const float fg = 0.768;
+static const float fr = 0.972;
+static const float fb = 0.949;
+static const float fg = 0.972;
 
 static const unsigned int duration = 5;
