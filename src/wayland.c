@@ -132,11 +132,11 @@ static const struct wl_registry_listener registry_listener = {
 int draw(void)
 {
 	wl_display_prepare_read(wayland.display);
-	wl_display_dispatch_pending(wayland.display);
+	//wl_display_dispatch_pending(wayland.display);
 	wl_display_flush(wayland.display);
 	wl_display_read_events(wayland.display);
-	wl_display_dispatch_pending(wayland.display);
-	//wl_display_dispatch(wayland.display);
+	//wl_display_dispatch_pending(wayland.display);
+	wl_display_dispatch(wayland.display);
 
 	return 0;
 }

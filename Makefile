@@ -1,4 +1,4 @@
-CFLAGS = -DEGL_NO_X11 -DWLR_USE_UNSTABLE -Wall -Os
+CFLAGS = -DEGL_NO_X11 -DWLR_USE_UNSTABLE -Wall -g
 
 INCLUDES = -Iinclude -Ilib -I/usr/include/cairo -I/usr/include/glib-2.0 -I/usr/include/glib-2.0/include -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng16
 
