@@ -3,3 +3,7 @@ Wayland notifcation port of herbe https://github.com/dudik/herbe.
 Right now the build system uses shell scripts till I make a Makefile :P
 
 To configure edit the config.h in the include directory.
+
+you can use pip things to wayherb by doing the following:
+
+<some type of output> | xargs wayherb

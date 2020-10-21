@@ -16,14 +16,14 @@ static const unsigned int padding = 15;
 //Style options
 static int32_t margin_right = 0, margin_bottom = 0, margin_left = 0, margin_top = 0;
 //Where it shows up on screen for example top left would be LEFT+TOP or right top would be RIGHT+TOP, etc
-static uint32_t anchor = TOP;
+static uint32_t anchor = TOP + RIGHT;
 static uint32_t width = 450;
-static const unsigned int border_size = 3;
+static const unsigned int border_size = 2;
 static double alpha = 1.0;
 static float font_size = 16.0;
 
 //Setting this to true makes it so windows will attempt to move out of the way for the notification
-static const bool exclusive_zone_on = false;
+static const bool exclusive_zone_on = true;
 
 //These all accept a value of 0.0 to 1.0 for red, green, and blue. The last character corresponds to the color
 //Background color

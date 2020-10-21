@@ -1,3 +1,0 @@
-#!/bin/sh
-
-rm wayherb lib/wlr-layer-shell-unstable-v1.c lib/wlr-layer-shell-unstable-v1.h
