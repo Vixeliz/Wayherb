@@ -10,10 +10,8 @@ OBJS = $(SRCS:%.c=bin/%.o)
 
 MAIN = wayherb
 
-.PHONY: wayland depend clean
-
 all: wayland $(MAIN)
-	@echo Orbernum has succansfully compiled
+	@echo Wayherb has succansfully compiled
 
 wayland:
 	wayland-scanner client-header lib/wlr-layer-shell-unstable-v1.xml lib/wlr-layer-shell-unstable-v1.h
@@ -21,6 +19,8 @@ wayland:
 
 $(MAIN): $(OBJS)
 	$(CC) $(CFLAGS) $(INCLUDES) -o bin/$(MAIN) $(OBJS) $(CFLAGS) $(LIBS)
+
+$(OBJS): wayland
 
 bin/%.o: %.c
 	mkdir -p $(@D)
@@ -33,5 +33,7 @@ clean:
 
 depend: $(SRCS)
 	makedepend $(INCLUDES) $^
+
+.PHONY: bin/%.o wayland depend clean
 
 #END
