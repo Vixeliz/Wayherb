@@ -1,6 +1,6 @@
 #include <semaphore.h>
 #include <signal.h>
-#include <semaphore.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
