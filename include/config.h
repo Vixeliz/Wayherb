@@ -19,7 +19,12 @@ static int32_t margin_right = 0, margin_bottom = 0, margin_left = 0, margin_top 
 static uint32_t anchor = TOP + RIGHT;
 static uint32_t width = 450;
 static const unsigned int border_size = 2;
+/* Backgound alpha */
 static double alpha = 1.0;
+/* Border alpha */
+static double bralpha = 1.0;
+/* Font alpha */
+static double falpha = 1.0;
 static float font_size = 16.0;
 
 //Setting this to true makes it so windows will attempt to move out of the way for the notification
