@@ -60,6 +60,7 @@ bool time_lessthan(const struct timespec *a, const struct timespec *b) {
 
 int main(int argc, char *argv[])
 {
+/*
 	if (argc == 1) {
 		sem_unlink("/wayherb");
 		die("Usage: %s body", argv[0]);
@@ -69,7 +70,7 @@ int main(int argc, char *argv[])
 		sem_unlink("/wayherb");
 		die("Currently wayherb only allows one argument however this will change\n");
 	}
-
+*/
 	struct sigaction act_expire, act_ignore;
 	act_expire.sa_handler = expire;
 	act_expire.sa_flags = SA_RESTART;
@@ -86,8 +87,8 @@ int main(int argc, char *argv[])
 	sigaction(SIGUSR1, &act_ignore, 0);
 	sigaction(SIGUSR2, &act_ignore, 0);
 	
-	sem_t *mutex = sem_open("/wayherb", O_CREAT, 0644, 1);
-	sem_wait(mutex);
+	//sem_t *mutex = sem_open("/wayherb", O_CREAT, 0644, 1);
+	//sem_wait(mutex);
 	
 	sigaction(SIGUSR1, &act_expire, 0);
 	sigaction(SIGUSR2, &act_expire, 0);
@@ -131,8 +132,8 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-	sem_post(mutex);
-	sem_close(mutex);
+	//sem_post(mutex);
+	//sem_close(mutex);
 	
 	free_wayland();
 	return exit_code;
