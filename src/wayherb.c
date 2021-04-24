@@ -86,8 +86,8 @@ int main(int argc, char *argv[])
 	sigaction(SIGUSR1, &act_ignore, 0);
 	sigaction(SIGUSR2, &act_ignore, 0);
 	
-	sem_t *mutex = sem_open("/wayherb", O_CREAT, 0644, 1);
-	sem_wait(mutex);
+	//sem_t *mutex = sem_open("/wayherb", O_CREAT, 0644, 1);
+	//sem_wait(mutex);
 	
 	sigaction(SIGUSR1, &act_expire, 0);
 	sigaction(SIGUSR2, &act_expire, 0);
@@ -111,8 +111,8 @@ int main(int argc, char *argv[])
 
         init_wayland(argc, argv);
 
-	if (duration != 0)
-		alarm(duration);
+	//if (duration != 0)
+		//alarm(duration);
 	
 	
 	for (;;) {
@@ -131,8 +131,8 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-	sem_post(mutex);
-	sem_close(mutex);
+	//sem_post(mutex);
+	//sem_close(mutex);
 	
 	free_wayland();
 	return exit_code;
